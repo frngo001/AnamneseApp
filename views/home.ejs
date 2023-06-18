@@ -1,61 +1,71 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<script src="js/sweetalert.js"></script>
-	<script src="js/sweetalert.min.js"></script>
-  <link rel="stylesheet" type="text/css" href="css/style.css">
-	<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <meta charset="UTF-8">
-	<title>Authentification NFC</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
-<body>
-	<h1>Authentification NFC</h1>
-	<p>Bitte legen sie Ihre Gesundheitskarte hintern Ihre Handy</p>
-	<button onclick="readNFC()">Lire la carte d'assurance NFC</button>
-    <div id="message"></div>
 
-</body>
+
+<h3>Background</h3>
+<p>
+Web NFC aims to provide sites the ability to read and write to NFC tags when
+they are brought in close proximity to the user’s device (usually 5-10 cm, 2-4
+inches). The current scope is limited to NDEF, a lightweight binary message
+format. Low-level I/O operations (e.g. ISO-DEP, NFC-A/B, NFC-F) and Host-based
+Card Emulation (HCE) are not supported within the current scope.
+</p>
+
+<button id="scanButton">Scan</button>
+<button id="writeButton">Write</button>
+<button id="makeReadOnlyButton">Make Read-Only</button>
+
+{% include output_helper.html initial_output_content=initial_output_content %}
+
 <script>
-	function readNFC() {
- // Demander l'accès à l'API Web NFC
-navigator.permissions.query({ name: "nfc" }).then((permissionStatus) => {
-  if (permissionStatus.state === "granted") {
-    // L'API Web NFC est disponible
-    const reader = new NDEFReader();
-    reader.scan().then((tag) => {
-      // La carte a été détectée
-      console.log(tag);
-      // Récupérer les données de la carte
-      const records = tag.records;
-      for (let i = 0; i < records.length; i++) {
-        const record = records[i];
-        console.log(record.recordType);
-        console.log(record.data);
-      }
-    }).catch((error) => {
-      // Une erreur s'est produite lors de la lecture de la carte
-      console.error(error);
+log = ChromeSamples.log;
+
+if (!("NDEFReader" in window))
+  ChromeSamples.setStatus("Web NFC is not available. Use Chrome on Android.");
+
+
+  scanButton.addEventListener("click", async () => {
+  log("User clicked scan button");
+
+  try {
+    const ndef = new NDEFReader();
+    await ndef.scan();
+    log("> Scan started");
+
+    ndef.addEventListener("readingerror", () => {
+      log("Argh! Cannot read data from the NFC tag. Try another one?");
     });
-  } else if (permissionStatus.state === "prompt") {
-    // L'utilisateur doit donner l'autorisation pour accéder à l'API Web NFC
-    navigator.permissions.request({ name: "nfc" }).then((permissionStatus) => {
-      if (permissionStatus.state === "granted") {
-        // L'API Web NFC est disponible
-        // Continuer avec la lecture de la carte
-      } else {
-        // L'utilisateur a refusé l'autorisation d'accéder à l'API Web NFC
-        console.error("Permission denied for NFC");
-      }
-    }).catch((error) => {
-      // Une erreur s'est produite lors de la demande d'autorisation
-      console.error(error);
+
+    ndef.addEventListener("reading", ({ message, serialNumber }) => {
+      log(`> Serial Number: ${serialNumber}`);
+      log(`> Records: (${message.records.length})`);
     });
-  } else {
-    // L'utilisateur a refusé l'autorisation d'accéder à l'API Web NFC
-    console.error("Permission denied for NFC");
+  } catch (error) {
+    log("Argh! " + error);
   }
 });
-}
+
+writeButton.addEventListener("click", async () => {
+  log("User clicked write button");
+
+  try {
+    const ndef = new NDEFReader();
+    await ndef.write("Hello world!");
+    log("> Message written");
+  } catch (error) {
+    log("Argh! " + error);
+  }
+});
+
+makeReadOnlyButton.addEventListener("click", async () => {
+  log("User clicked make read-only button");
+
+  try {
+    const ndef = new NDEFReader();
+    await ndef.makeReadOnly();
+    log("> NFC tag has been made permanently read-only");
+  } catch (error) {
+    log("Argh! " + error);
+  }
+});
 </script>
-</html>
+
+
