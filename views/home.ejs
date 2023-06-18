@@ -1,70 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>NFC Reader</title>
+</head>
+<body>
+  <h1>NFC Reader</h1>
+  <button id="startButton">Start Reading NFC</button>
+  <p id="message"></p>
 
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const startButton = document.getElementById('startButton');
+      const messageElement = document.getElementById('message');
 
-<h3>Background</h3>
-<p>
-Web NFC aims to provide sites the ability to read and write to NFC tags when
-they are brought in close proximity to the user’s device (usually 5-10 cm, 2-4
-inches). The current scope is limited to NDEF, a lightweight binary message
-format. Low-level I/O operations (e.g. ISO-DEP, NFC-A/B, NFC-F) and Host-based
-Card Emulation (HCE) are not supported within the current scope.
-</p>
+      startButton.addEventListener('click', startReadingNFC);
 
-<button id="scanButton">Scan</button>
-<button id="writeButton">Write</button>
-<button id="makeReadOnlyButton">Make Read-Only</button>
+      function startReadingNFC() {
+        if ('NDEFReader' in window) {
+          // Request NFC permission
+          navigator.permissions.query({ name: 'nfc' })
+            .then(permissionStatus => {
+              if (permissionStatus.state === 'granted') {
+                // NFC permission granted, proceed to read NFC data
+                readNFCData();
+              } else if (permissionStatus.state === 'prompt') {
+                // Prompt the user to grant NFC permission
+                permissionStatus.onchange = () => {
+                  if (permissionStatus.state === 'granted') {
+                    // NFC permission granted, proceed to read NFC data
+                    readNFCData();
+                  }
+                };
+              }
+            })
+            .catch(error => {
+              console.error('Error while checking NFC permission:', error);
+            });
+        } else {
+          messageElement.textContent = 'Web NFC API is not supported in this browser.';
+        }
+      }
 
+      function readNFCData() {
+        const ndef = new NDEFReader();
 
-<script>
-log = ChromeSamples.log;
+        ndef.addEventListener('reading', event => {
+          messageElement.textContent = 'NFC card detected!';
+          const records = event.message.records;
+          for (const record of records) {
+            // Process each record
+            console.log('Record:', record);
+          }
+        });
 
-if (!("NDEFReader" in window))
-  ChromeSamples.setStatus("Web NFC is not available. Use Chrome on Android.");
+        ndef.addEventListener('error', event => {
+          console.error('Error reading NFC data:', event.error);
+        });
 
-
-  scanButton.addEventListener("click", async () => {
-  log("User clicked scan button");
-
-  try {
-    const ndef = new NDEFReader();
-    await ndef.scan();
-    log("> Scan started");
-
-    ndef.addEventListener("readingerror", () => {
-      log("Argh! Cannot read data from the NFC tag. Try another one?");
+        ndef.scan()
+          .then(() => {
+            messageElement.textContent = 'NFC reader initialized and scanning started.';
+          })
+          .catch(error => {
+            console.error('Error initializing NFC reader:', error);
+          });
+      }
     });
-
-    ndef.addEventListener("reading", ({ message, serialNumber }) => {
-      log(`> Serial Number: ${serialNumber}`);
-      log(`> Records: (${message.records.length})`);
-    });
-  } catch (error) {
-    log("Argh! " + error);
-  }
-});
-
-writeButton.addEventListener("click", async () => {
-  log("User clicked write button");
-
-  try {
-    const ndef = new NDEFReader();
-    await ndef.write("Hello world!");
-    log("> Message written");
-  } catch (error) {
-    log("Argh! " + error);
-  }
-});
-
-makeReadOnlyButton.addEventListener("click", async () => {
-  log("User clicked make read-only button");
-
-  try {
-    const ndef = new NDEFReader();
-    await ndef.makeReadOnly();
-    log("> NFC tag has been made permanently read-only");
-  } catch (error) {
-    log("Argh! " + error);
-  }
-});
-</script>
-
-
+  </script>
+</body>
+</html>
