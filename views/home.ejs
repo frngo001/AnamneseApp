@@ -4,68 +4,39 @@
   <title>NFC Reader</title>
 </head>
 <body>
-  <h1>NFC Reader</h1>
-  <button id="startButton">Start Reading NFC</button>
-  <p id="message"></p>
+  <button id="startButton">Start NFC Reader</button>
+  <div id="output"></div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/nfcpy/1.0.3/nfcpy.min.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const startButton = document.getElementById('startButton');
-      const messageElement = document.getElementById('message');
+    // Function to handle NFC data
+    function handleNFCData(data) {
+      // Process the NFC data
+      $('#output').text(data);
+    }
 
-      startButton.addEventListener('click', startReadingNFC);
-
-      function startReadingNFC() {
-        if ('NDEFReader' in window) {
-          // Request NFC permission
-          navigator.permissions.query({ name: 'nfc' })
-            .then(permissionStatus => {
-              if (permissionStatus.state === 'granted') {
-                // NFC permission granted, proceed to read NFC data
-                readNFCData();
-              } else if (permissionStatus.state === 'prompt') {
-                // Prompt the user to grant NFC permission
-                permissionStatus.onchange = () => {
-                  if (permissionStatus.state === 'granted') {
-                    // NFC permission granted, proceed to read NFC data
-                    readNFCData();
-                  }
-                };
-              }
-            })
-            .catch(error => {
-              console.error('Error while checking NFC permission:', error);
-            });
-        } else {
-          messageElement.textContent = 'Web NFC API is not supported in this browser.';
-        }
+    // Function to start the NFC reader
+    function startNFCReader() {
+      // Check if NFC is supported
+      if ('NDEFReader' in window) {
+        // Start the NFC reader
+        const reader = new NDEFReader();
+        reader.onreading = event => {
+          handleNFCData(event.message.records[0].data);
+        };
+        reader.onerror = error => {
+          console.log(`Error: ${error}`);
+        };
+        reader.scan();
+        $('#startButton').prop('disabled', true);
+      } else {
+        alert('NFC is not supported on this device.');
       }
+    }
 
-      function readNFCData() {
-        const ndef = new NDEFReader();
-
-        ndef.addEventListener('reading', event => {
-          messageElement.textContent = 'NFC card detected!';
-          const records = event.message.records;
-          for (const record of records) {
-            // Process each record
-            console.log('Record:', record);
-          }
-        });
-
-        ndef.addEventListener('error', event => {
-          console.error('Error reading NFC data:', event.error);
-        });
-
-        ndef.scan()
-          .then(() => {
-            messageElement.textContent = 'NFC reader initialized and scanning started.';
-          })
-          .catch(error => {
-            console.error('Error initializing NFC reader:', error);
-          });
-      }
-    });
+    // Event listener for the start button
+    $('#startButton').click(startNFCReader);
   </script>
 </body>
 </html>
