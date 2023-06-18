@@ -48,6 +48,10 @@
           messageElement.textContent = 'NFC card detected!';
           const records = event.message.records;
 
+          if (records.length === 0) {
+            messageElement.textContent = 'No NFC records found on the card.';
+          }
+
           for (const record of records) {
             const recordType = record.recordType;
             const data = record.data;
