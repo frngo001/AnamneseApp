@@ -54,8 +54,8 @@
             const textDecoder = new TextDecoder();
             const text = textDecoder.decode(data);
 
-            console.log('Record Type:', recordType);
-            console.log('Data:', text);
+            const message = `Record Type: ${recordType}, Data: ${text}`;
+            messageElement.textContent = message;
           }
         });
 
