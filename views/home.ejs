@@ -15,54 +15,54 @@ Card Emulation (HCE) are not supported within the current scope.
 
 
 <script>
-log = ChromeSamples.log;
+alert = ChromeSamples.alert;
 
 if (!("NDEFReader" in window))
   ChromeSamples.setStatus("Web NFC is not available. Use Chrome on Android.");
 
 
   scanButton.addEventListener("click", async () => {
-  log("User clicked scan button");
+  alert("User clicked scan button");
 
   try {
     const ndef = new NDEFReader();
     await ndef.scan();
-    log("> Scan started");
+    alert("> Scan started");
 
     ndef.addEventListener("readingerror", () => {
-      log("Argh! Cannot read data from the NFC tag. Try another one?");
+      alert("Argh! Cannot read data from the NFC tag. Try another one?");
     });
 
     ndef.addEventListener("reading", ({ message, serialNumber }) => {
-      log(`> Serial Number: ${serialNumber}`);
-      log(`> Records: (${message.records.length})`);
+      alert(`> Serial Number: ${serialNumber}`);
+      alert(`> Records: (${message.records.length})`);
     });
   } catch (error) {
-    log("Argh! " + error);
+    alert("Argh! " + error);
   }
 });
 
 writeButton.addEventListener("click", async () => {
-  log("User clicked write button");
+  alert("User clicked write button");
 
   try {
     const ndef = new NDEFReader();
     await ndef.write("Hello world!");
-    log("> Message written");
+    alert("> Message written");
   } catch (error) {
-    log("Argh! " + error);
+    alert("Argh! " + error);
   }
 });
 
 makeReadOnlyButton.addEventListener("click", async () => {
-  log("User clicked make read-only button");
+  alert("User clicked make read-only button");
 
   try {
     const ndef = new NDEFReader();
     await ndef.makeReadOnly();
-    log("> NFC tag has been made permanently read-only");
+    alert("> NFC tag has been made permanently read-only");
   } catch (error) {
-    log("Argh! " + error);
+    alert("Argh! " + error);
   }
 });
 </script>
