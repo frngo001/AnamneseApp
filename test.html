@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="js/sweetalert.js"></script>
+	<script src="js/sweetalert.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="css/style.css">
+	<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <meta charset="UTF-8">
+	<title>Authentification NFC</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+	<h1>Authentification NFC</h1>
+	<p>Bitte legen sie Ihre Gesundheitskarte hintern Ihre Handy</p>
+	<button onclick="readNFC()">Lire la carte d'assurance NFC</button>
+    <div id="message"></div>
+
+</body>
+<script>
+	function readNFC() {
+ // Demander l'accès à l'API Web NFC
+navigator.permissions.query({ name: "nfc" }).then((permissionStatus) => {
+  if (permissionStatus.state === "granted") {
+    // L'API Web NFC est disponible
+    const reader = new NDEFReader();
+    reader.scan().then((tag) => {
+      // La carte a été détectée
+      console.log(tag);
+      // Récupérer les données de la carte
+      const records = tag.records;
+      for (let i = 0; i < records.length; i++) {
+        const record = records[i];
+        console.log(record.recordType);
+        console.log(record.data);
+      }
+    }).catch((error) => {
+      // Une erreur s'est produite lors de la lecture de la carte
+      console.error(error);
+    });
+  } else if (permissionStatus.state === "prompt") {
+    // L'utilisateur doit donner l'autorisation pour accéder à l'API Web NFC
+    navigator.permissions.request({ name: "nfc" }).then((permissionStatus) => {
+      if (permissionStatus.state === "granted") {
+        // L'API Web NFC est disponible
+        // Continuer avec la lecture de la carte
+      } else {
+        // L'utilisateur a refusé l'autorisation d'accéder à l'API Web NFC
+        console.error("Permission denied for NFC");
+      }
+    }).catch((error) => {
+      // Une erreur s'est produite lors de la demande d'autorisation
+      console.error(error);
+    });
+  } else {
+    // L'utilisateur a refusé l'autorisation d'accéder à l'API Web NFC
+    console.error("Permission denied for NFC");
+  }
+});
+}
+</script>
+</html>
